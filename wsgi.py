@@ -10,7 +10,7 @@ def hello():
     return "Hello World!"
 
 @application.route("/gotrailers")
-def hello():
+def gotrailers():
     with open('action.json') as f:
         jsondata = json.load(f)
 
