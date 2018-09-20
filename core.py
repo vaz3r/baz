@@ -10,9 +10,14 @@ start = time.time()
 for data in jsondata["data"]:
     print(data["title"])
     page = requests.get("https://www.youtube.com/results?search_query=" + data["title"] + " trailer")
-    # soup = BeautifulSoup(page.content, 'html.parser')
-    # trailer_html = soup.find("h3", class_="yt-lockup-title")
-    # trailer = trailer_html.find("a")["href"]
-    # print(trailer)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    trailer_html = soup.find_all("h3", class_="yt-lockup-title")
+
+    for a in trailer_html:
+        trailer = a.find("a")["href"]
+        if ("googleadservices" not in trailer):
+            print(trailer)
+            break
+
 end = time.time()
 print(end - start)
