@@ -1,2 +1,0 @@
-py Ranker.py
-pause
