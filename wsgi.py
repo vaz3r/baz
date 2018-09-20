@@ -12,7 +12,7 @@ def hello():
 @application.route("/gotrailers")
 def hello():
     with open('action.json') as f:
-    jsondata = json.load(f)
+        jsondata = json.load(f)
 
     bigdata = ""
 
