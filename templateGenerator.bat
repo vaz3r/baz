@@ -1,0 +1,2 @@
+py templateGenerator.py
+pause
