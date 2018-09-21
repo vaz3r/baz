@@ -1,8 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import json
-from selenium import webdriver
-from selenium.webdriver.common.by import By
 from time import sleep
 
 genres = [
@@ -29,7 +27,35 @@ genres = [
     'biography'
 ]
 
-driver = webdriver.Chrome()
+def getTrailer(movie_title):
+    try:
+        page = requests.get("https://www.youtube.com/results?search_query=" + movie_title + " trailer")
+        soup = BeautifulSoup(page.content, 'html.parser')
+        trailer_html = soup.find_all("h3", class_="yt-lockup-title")
+
+        trailer = ""
+
+        if len(trailer_html) <= 0:
+            #V2 JSON SCRAPING
+            scripts = soup.find_all("script")
+
+            for script in scripts:
+                if 'window["ytInitialData"]' in script.text:
+                    trailer = find_between(script.text, '"videoId":', '",').replace('"', "").strip()
+                    trailer = "https://www.youtube.com/watch?v=" + trailer
+                    break
+        else:
+            #V1 HTML SCRAPING
+            for a in trailer_html:
+                trailer = a.find("a")["href"]
+                if ("googleadservices" not in trailer):
+                    trailer = trailer.replace("/watch?v=", "https://www.youtube.com/watch?v=")
+                    break
+        
+        return trailer
+    except:
+        print("Exception: getTrailer")
+        return "null"
 
 for genre in genres:
     json_data = ""
@@ -79,10 +105,7 @@ for genre in genres:
             image = image[0:vIndex] + "_V1_UY600_CR0,0,0,600_AL_.jpg"
             print(image)
 
-            driver.get("https://www.youtube.com/results?search_query=" + title + " trailer")
-
-            trailer = driver.find_element_by_xpath("//a[@id='video-title']")
-            trailer = trailer.get_attribute('href')
+            trailer = getTrailer(title)
             print(trailer)
             print("=============================")
             data['popularityIndex'] = popularityIndex
