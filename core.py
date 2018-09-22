@@ -141,9 +141,6 @@ for genre in genres:
 
 print("Uploading to server...")
 
-popular_files = os.listdir("popular")
-best_files = os.listdir("best")
-
 b2 = B2(key_id="b41a85681294", application_key="001705ef3076ce3e3899d3a384fdef978e113e0d33")
 bucket = b2.buckets.get('movies-db')
 
@@ -151,13 +148,16 @@ for genre in genres:
     #POPULAR DIR
     file_name = "popular\\" + genre + ".json"
     file_handle = open(file_name, 'rb')
-    file_upload = bucket.files.upload(contents=file_handle, file_name=file_name)
+    file_name_up = "popular/" + genre + ".json"
+    file_upload = bucket.files.upload(contents=file_handle, file_name=file_name_up)
     #BEST DIR
     file_name = "best\\best-" + genre + ".json"
+    file_name_up = "best/best-" + genre + ".json"
     file_handle = open(file_name, 'rb')
-    file_upload = bucket.files.upload(contents=file_handle, file_name=file_name)
+    file_upload = bucket.files.upload(contents=file_handle, file_name=file_name_up)
 
 end = time.time()
+time_taken = end - start
 
 print("DONE.")
-print("TIME TAKEN: " + end - start)
+print("TIME TAKEN: " + str(time_taken))
