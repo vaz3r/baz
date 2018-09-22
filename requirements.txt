@@ -4,3 +4,4 @@ gunicorn
 Flask
 
 BeautifulSoup4
+b2blaze
