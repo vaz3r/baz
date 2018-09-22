@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import json
 from time import sleep
+from b2blaze import B2
+import time
 
 genres = [
     'action',
@@ -27,36 +29,6 @@ genres = [
     'biography'
 ]
 
-def getTrailer(movie_title):
-    try:
-        page = requests.get("https://www.youtube.com/results?search_query=" + movie_title + " trailer")
-        soup = BeautifulSoup(page.content, 'html.parser')
-        trailer_html = soup.find_all("h3", class_="yt-lockup-title")
-
-        trailer = ""
-
-        if len(trailer_html) <= 0:
-            #V2 JSON SCRAPING
-            scripts = soup.find_all("script")
-
-            for script in scripts:
-                if 'window["ytInitialData"]' in script.text:
-                    trailer = find_between(script.text, '"videoId":', '",').replace('"', "").strip()
-                    trailer = "https://www.youtube.com/watch?v=" + trailer
-                    break
-        else:
-            #V1 HTML SCRAPING
-            for a in trailer_html:
-                trailer = a.find("a")["href"]
-                if ("googleadservices" not in trailer):
-                    trailer = trailer.replace("/watch?v=", "https://www.youtube.com/watch?v=")
-                    break
-        
-        return trailer
-    except:
-        print("Exception: getTrailer")
-        return "null"
-
 def getYoutubeTrailer(movie_title):
     try:
         response = requests.get("https://www.googleapis.com/youtube/v3/search?q=" + movie_title + "%20trailer&maxResults=1&part=snippet&key=AIzaSyAuMfYQp9ClNz8ugf3DKmtSHOxa6P64QtM")
@@ -66,6 +38,8 @@ def getYoutubeTrailer(movie_title):
     except:
         print("Exception.")
         return "null"
+
+start = time.time()
 
 for genre in genres:
     json_data = ""
@@ -115,9 +89,9 @@ for genre in genres:
             image = image[0:vIndex] + "_V1_UY600_CR0,0,0,600_AL_.jpg"
             print(image)
 
-            # trailer = getTrailer(title)
             trailer = getYoutubeTrailer(title)
             print(trailer)
+
             print("=============================")
             data['popularityIndex'] = popularityIndex
             data['title'] = title
@@ -141,3 +115,49 @@ for genre in genres:
     print("Sleeping | Current Genre: " + genre)
     sleep(5)
     
+print("Ranking Databases...")
+
+for genre in genres:
+    f = open("popular\\" + genre + ".json","r")
+    json_data = f.read()
+    f.close()
+
+    def sort_by_rating(data):
+        try:
+            return float(data['rating'])
+        except:
+            return 0
+
+    data = json.loads(json_data)
+    sorted_obj = dict(data) 
+    sorted_obj['data'] = sorted(data['data'], key=sort_by_rating, reverse=True)
+
+    final_data = json.dumps(sorted_obj)
+
+    with open("best\\best-" + genre + ".json", 'w') as f:
+        f.write(final_data)
+
+    print(genre + " -> DONE.")
+
+print("Uploading to server...")
+
+popular_files = os.listdir("popular")
+best_files = os.listdir("best")
+
+b2 = B2(key_id="b41a85681294", application_key="001705ef3076ce3e3899d3a384fdef978e113e0d33")
+bucket = b2.buckets.get('movies-db')
+
+for genre in genres:
+    #POPULAR DIR
+    file_name = "popular\\" + genre + ".json"
+    file_handle = open(file_name, 'rb')
+    file_upload = bucket.files.upload(contents=file_handle, file_name=file_name)
+    #BEST DIR
+    file_name = "best\\best-" + genre + ".json"
+    file_handle = open(file_name, 'rb')
+    file_upload = bucket.files.upload(contents=file_handle, file_name=file_name)
+
+end = time.time()
+
+print("DONE.")
+print("TIME TAKEN: " + end - start)
