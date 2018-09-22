@@ -148,11 +148,11 @@ for genre in genres:
     #POPULAR DIR
     file_name = "popular\\" + genre + ".json"
     file_handle = open(file_name, 'rb')
-    file_name_up = "popular/" + genre + ".json"
+    file_name_up = genre + ".json"
     file_upload = bucket.files.upload(contents=file_handle, file_name=file_name_up)
     #BEST DIR
     file_name = "best\\best-" + genre + ".json"
-    file_name_up = "best/best-" + genre + ".json"
+    file_name_up = "best-" + genre + ".json"
     file_handle = open(file_name, 'rb')
     file_upload = bucket.files.upload(contents=file_handle, file_name=file_name_up)
 
